@@ -16,14 +16,14 @@ async function bootstrap() {
     }
   );
 
-  app.useGlobalPipes(  
-    new ValidationPipe({ 
-  whitelist: true, 
-  forbidNonWhitelisted: true, 
-    }) 
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    })
   );
 
   await app.listen();
-  logger.log(`Microservicio corriendo en el puerto ${envs.port}`);
+  logger.log(`Microservicio de Usuarios corriendo en el puerto ${envs.port}`);
 }
 bootstrap();

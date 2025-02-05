@@ -1,3 +1,4 @@
+import { Transform } from "class-transformer";
 import { IsBoolean, IsEmail, IsString } from "class-validator";
 
 export class CreateUserDto {
@@ -24,5 +25,6 @@ export class CreateUserDto {
     usua_contrasenia:string;
 
     @IsBoolean()
+    @Transform(({ value }) => value === 'true' || value === true)
     activo: boolean;
 }

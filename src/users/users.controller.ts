@@ -23,7 +23,7 @@ export class UsersController {
 
   //@Get(':id')
   @MessagePattern({ cmd: 'findOne_users'})
-  findOne(@Payload('id', ParseIntPipe) usua_id: number) {
+  async findOne(@Payload('usua_id', ParseIntPipe) usua_id: number) {
     return this.usersService.findOne(usua_id);
   }
 
@@ -40,7 +40,10 @@ export class UsersController {
 
   //@Delete(':id')
   @MessagePattern({ cmd: 'delete_users'})
-  remove(@Payload('id', ParseIntPipe) usua_id: number) {
+  remove(@Payload('usua_id', ParseIntPipe) usua_id: number) {
+    const ue = usua_id;
+    console.log(`el usuario ${ue} a sido eliminado`)
     return this.usersService.remove(usua_id);
+    
   }
 }

@@ -1,8 +1,9 @@
-import { Injectable, Logger, NotAcceptableException, OnModuleInit } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaClient } from '@prisma/client';
 import {PaginationDto } from 'src/common';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class UsersService extends PrismaClient implements OnModuleInit {
@@ -19,7 +20,7 @@ export class UsersService extends PrismaClient implements OnModuleInit {
   }
 
   async findAll( paginationDto: PaginationDto ) {
-    const { page=1, limit=10 } = paginationDto;
+    const { page=1, limit=2 } = paginationDto;
 
     const totalPages =  await this.usuarios.count({where: {activo:true}});
     const lastPage = Math.ceil( totalPages / limit);
@@ -44,7 +45,10 @@ export class UsersService extends PrismaClient implements OnModuleInit {
     });
 
     if ( !user ) {
-      throw new NotAcceptableException(`Usuario con el id #${usua_id} no encontrado`)
+      throw new RpcException({
+        message: `Usuario con el id #${usua_id} no encontrado`,
+        status: HttpStatus.BAD_REQUEST,
+      })
     }
     return user;
   }
