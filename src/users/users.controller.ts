@@ -1,0 +1,46 @@
+import { Controller, Body, ParseIntPipe } from '@nestjs/common';
+import { UsersService } from './users.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import {  PaginationDto } from 'src/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+
+@Controller('users')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  //@Post()
+  @MessagePattern({ cmd: 'create_users'})
+  create(@Payload() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
+  }
+
+  //Get()
+  @MessagePattern({ cmd: 'findAll_users'})
+  findAll(@Payload()paginationDto: PaginationDto) {
+    return this.usersService.findAll(paginationDto);
+  }
+
+  //@Get(':id')
+  @MessagePattern({ cmd: 'findOne_users'})
+  findOne(@Payload('id', ParseIntPipe) usua_id: number) {
+    return this.usersService.findOne(usua_id);
+  }
+
+  //@Patch(':id')
+  @MessagePattern({ cmd: 'update_users'})
+  update(
+    //@Param('id', ParseIntPipe) usua_id: number, 
+    //@Body() updateUserDto: UpdateUserDto,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    
+    return this.usersService.update(updateUserDto.usua_id, updateUserDto);
+  }
+
+  //@Delete(':id')
+  @MessagePattern({ cmd: 'delete_users'})
+  remove(@Payload('id', ParseIntPipe) usua_id: number) {
+    return this.usersService.remove(usua_id);
+  }
+}
