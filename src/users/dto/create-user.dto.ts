@@ -1,8 +1,11 @@
+import { Rol } from "@prisma/client";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsEmail, IsString } from "class-validator";
+import { IsBoolean, IsEmail, IsEnum, IsString, MaxLength, MinLength } from "class-validator";
 
 export class CreateUserDto {
     @IsString()
+    @MinLength(10)
+    @MaxLength(13)
     usua_ruc        :string;
 
     @IsString()
@@ -22,7 +25,11 @@ export class CreateUserDto {
     usua_direccion  :string;    
     
     @IsString()
+    @MinLength(4)
     usua_contrasenia:string;
+
+    @IsEnum(Rol)
+    usua_rol: Rol
 
     @IsBoolean()
     @Transform(({ value }) => value === 'true' || value === true)
