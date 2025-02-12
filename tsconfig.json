@@ -17,5 +17,7 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
-  }
+  },
+  "include": ["src/**/*.ts"],  // ✅ Asegurar que incluye todos los archivos TS
+  "exclude": ["node_modules"]
 }

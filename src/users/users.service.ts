@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaClient } from '@prisma/client';
 import {PaginationDto } from 'src/common';
 import { RpcException } from '@nestjs/microservices';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService extends PrismaClient implements OnModuleInit {
@@ -13,31 +14,70 @@ export class UsersService extends PrismaClient implements OnModuleInit {
     this.$connect();
     this.logger.log('Database Connected');
     }
-  create(createUserDto: CreateUserDto) {
-    return this.usuarios.create({
-      data: createUserDto
+
+
+  async create(createUserDto: CreateUserDto) {
+    //verificacion del usuario
+    const existingUser = await this.usuarios.findUnique({
+      where: { usua_email: createUserDto.usua_email},
     });
+
+    if (existingUser) {
+      throw new RpcException({
+        message: 'El usuario ya existe',
+        status: HttpStatus.BAD_REQUEST,
+      });
+    }
+    
+    //encriptar la contraseña antes del guardar
+    const hashedPassword = await bcrypt.hash(createUserDto.usua_contrasenia, 10)
+    try {
+      return await this.usuarios.create({
+        data: {
+          ...createUserDto,
+          usua_contrasenia: hashedPassword,
+        },
+      });
+    } catch (error) {
+      this.logger.error('error al registrar usuasrio', error);
+      throw new RpcException({
+        message: 'Error al registrar el usuario',
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
+    }
+    
   }
 
-  async findAll( paginationDto: PaginationDto ) {
-    const { page=1, limit=2 } = paginationDto;
-
-    const totalPages =  await this.usuarios.count({where: {activo:true}});
-    const lastPage = Math.ceil( totalPages / limit);
-
+  async findAll(paginationDto: PaginationDto) {
+    if (!paginationDto || paginationDto.page === undefined || paginationDto.limit === undefined) {
+      throw new Error('❌ Parámetros de paginación incorrectos');
+    }
+  
+    const page = Number(paginationDto.page) || 1; // Asegurar que sea número
+    const limit = Number(paginationDto.limit) || 2; // Asegurar que sea número
+  
+    console.log('📄 Paginación recibida en findAll:', { page, limit });
+  
+    const totalPages = await this.usuarios.count({ where: { activo: true } });
+    const lastPage = Math.ceil(totalPages / limit);
+  
     return {
       data: await this.usuarios.findMany({
         skip: (page - 1) * limit,
-        take: limit,
+        take: limit, // ✅ AHORA `limit` ES UN NÚMERO
         where: { activo: true }
       }),
       metadata: {
         total: totalPages,
-        page:page,
-        lastpage: lastPage
+        page,
+        lastPage
       }
-    }
+    };
   }
+  
+  
+  
+  
 
   async findOne(usua_id: number) {
     const user = await this.usuarios.findFirst({
