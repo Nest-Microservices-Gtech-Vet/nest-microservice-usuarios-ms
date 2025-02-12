@@ -1,6 +1,6 @@
 import { Rol } from "@prisma/client";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsEmail, IsEnum, IsString, MaxLength, MinLength } from "class-validator";
+import { IsBoolean, IsEmail, IsEnum, IsInt, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class CreateUserDto {
     @IsString()
@@ -34,4 +34,13 @@ export class CreateUserDto {
     @IsBoolean()
     @Transform(({ value }) => value === 'true' || value === true)
     activo: boolean;
+
+   
+    @IsInt()
+    createdBy?: number;
+
+    
+   
+    @IsInt()
+    updatedBy?: number;
 }

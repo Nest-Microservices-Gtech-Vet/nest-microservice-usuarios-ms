@@ -36,6 +36,8 @@ export class UsersService extends PrismaClient implements OnModuleInit {
         data: {
           ...createUserDto,
           usua_contrasenia: hashedPassword,
+          createdBy: createUserDto.createdBy ?? 0,
+          updatedBy: createUserDto.updatedBy ?? 0,
         },
       });
     } catch (error) {

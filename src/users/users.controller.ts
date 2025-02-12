@@ -1,19 +1,33 @@
-import { Controller, Body, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Body, ParseIntPipe, UseGuards, HttpStatus } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationDto } from 'src/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @Controller()
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   //@Post()
-  @MessagePattern({ cmd: 'create_users' })
-  create(@Payload() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  @MessagePattern('create_users')
+  @UseGuards(JwtAuthGuard, new RolesGuard(['SUPERADMIN']))
+  async create(@Payload() data: { createUserDto: CreateUserDto; createdBy: number}) {
+    console.log('📩 Datos recibidos en usuarios-ms (crear usuario):', data);
+    
+    if (!data.createdBy) {
+      throw new RpcException({
+        message: '❌ createdBy es requerido',
+        status: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    return this.usersService.create({
+      ...data.createUserDto,
+      createdBy: data.createdBy,
+    });
   }
 
   //Get()
@@ -24,7 +38,7 @@ export class UsersController {
   //return this.usersService.findAll(paginationDto);
   //}
   @MessagePattern('findAll_users')
-  @UseGuards(JwtAuthGuard) // Protege la ruta con JWT
+  @UseGuards(JwtAuthGuard, new RolesGuard(['SUPERADMIN'])) // Protege la ruta con JWT@@
   async findAll(@Payload() data) {
     console.log('✅ Petición recibida en usuarios-ms:', data);
 
