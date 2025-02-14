@@ -1,10 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+import { PrismaClient } from '@prisma/client';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { envs } from 'src/config/envs';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
+  private prisma = new PrismaClient();
   constructor() {
     super({
       jwtFromRequest: (req) => {
@@ -30,6 +32,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     console.log('🛠 Token validado con payload:', payload);
+
+    const user = await this.prisma.usuarios.findUnique({
+      where: { usua_id: payload.userId },
+    });
+
+    if (!user || !user.activo) {
+      throw new UnauthorizedException('🚫 El usuario está inactivo o no existe.');
+    }
     return { userId: payload.userId, role: payload.role };
   }
 }

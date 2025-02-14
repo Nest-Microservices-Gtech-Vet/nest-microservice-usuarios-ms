@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException, OnModuleInit } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { RpcException } from '@nestjs/microservices';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'prisma/prisma.service';
 import { envs } from 'src/config/envs';
@@ -29,6 +30,13 @@ export class AuthService implements OnModuleInit {
 
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    if (!user.activo) {
+      throw new RpcException({
+        message: '🚫 Usuario inactivo, contacta al administrador',
+        status: 403,
+      });
     }
 
     const isPasswordValid = await bcrypt.compare(loginData.password, user.usua_contrasenia);
