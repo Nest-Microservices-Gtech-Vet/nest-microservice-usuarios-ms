@@ -82,6 +82,7 @@ export class UsersService extends PrismaClient implements OnModuleInit {
 
 
   async findOne(usua_id: number) {
+    console.log(`🔍 Buscando en la base de datos usuario con ID: ${usua_id}`);
     const user = await this.usuarios.findFirst({
       where: { usua_id, activo: true }
     });

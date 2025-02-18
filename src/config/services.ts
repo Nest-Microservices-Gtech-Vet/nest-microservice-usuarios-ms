@@ -1,0 +1,2 @@
+export const USERS_SERVICE = 'USERS_SERVICE';
+export const EMPRESAS_SERVICE = 'EMPRESAS_SERVICE';

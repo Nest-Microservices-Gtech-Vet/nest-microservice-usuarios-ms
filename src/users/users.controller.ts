@@ -44,14 +44,17 @@ export class UsersController {
 
 
   //@Get(':id')
-  @MessagePattern({ cmd: 'findOne_users' })
+  @MessagePattern('findOne_users')
   @UseGuards(JwtAuthGuard, new RolesGuard(['SUPERADMIN']))
   async findOne(@Payload() data: { usua_id: number, }) {
+    console.log('📩 Usuarios-MS recibió solicitud findOne_users:', data);
     console.log(`🔍 Buscando usuario con ID: ${data.usua_id}`);
+    console.log(`🔍 Recibida solicitud para buscar usuario con ID: ${data.usua_id}`);
 
     const user = await this.usersService.findOne(data.usua_id);
     if (!user) {
-      throw new RpcException('❌ Usuario no encontrado en la base de datos');
+      console.error('❌ Usuario no encontrado en usuarios-ms');
+      throw new RpcException('Usuario no encontrado en la base de datos');
     }
 
     console.log('✅ Usuario encontrado:', user);
@@ -83,7 +86,7 @@ export class UsersController {
   }
 
   //@Delete(':id')
-  @MessagePattern({ cmd: 'delete_users' })
+  @MessagePattern('delete_users')
   @UseGuards(JwtAuthGuard, new RolesGuard(['SUPERADMIN']))
   async remove(@Payload() data: { usua_id: number, updatedBy: number, authorization: string }) {
     console.log(`🗑️ Recibida solicitud para borrar usuario con ID: ${data.usua_id}`);

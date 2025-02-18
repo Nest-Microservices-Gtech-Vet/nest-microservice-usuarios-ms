@@ -11,9 +11,9 @@ async function bootstrap() {
     {
       transport: Transport.TCP,
       options: {
-        host: envs.usersMicroserviceHost,
-        port: envs.usersMicroservicePort,
-      }
+        
+        port: envs.port,
+      },
     }
   );
 
