@@ -44,7 +44,7 @@ export class UsersController {
 
 
   //@Get(':id')
-  @MessagePattern({ cmd: 'findOne_users' })
+  @MessagePattern('findOne_users')
   @UseGuards(JwtAuthGuard, new RolesGuard(['SUPERADMIN']))
   async findOne(@Payload() data: { usua_id: number, }) {
     console.log(`🔍 Buscando usuario con ID: ${data.usua_id}`);
