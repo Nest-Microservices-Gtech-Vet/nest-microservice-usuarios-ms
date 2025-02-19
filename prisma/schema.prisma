@@ -26,6 +26,9 @@ model usuarios {
   usua_rol        Rol
   //empresa_id      Int?
   //empresa         Empresa? @relation(fields: [empresa_id], references: [emp_id])
+
+  createdBy Int? // ID del superadmin (está en otro microservicio)
+  updatedBy Int?
   activo          Boolean @default(true)
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
