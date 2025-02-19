@@ -23,8 +23,9 @@ export class UsersController {
 
   //@Get(':id')
   @MessagePattern({ cmd: 'findOne_users'})
-  async findOne(@Payload('usua_id', ParseIntPipe) usua_id: number) {
-    return this.usersService.findOne(usua_id);
+  async findOne(@Payload() data: any){
+    console.log('🔍 Recibida petición para buscar usuario:', data);
+    return this.usersService.findOne(data.usua_id);
   }
 
   //@Patch(':id')

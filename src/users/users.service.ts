@@ -40,16 +40,24 @@ export class UsersService extends PrismaClient implements OnModuleInit {
   }
 
   async findOne(usua_id: number) {
-    const user = await this.usuarios.findFirst({
-      where:{usua_id, activo: true}
+    console.log(`🔍 Buscando usuario en la base de datos con ID: ${usua_id}`);
+    const user = await this.usuarios.findUnique({
+      where:{usua_id, activo: true},
+      // select: {
+      //   usua_id: true,
+      //   usua_rol: true,
+      //   activo: true,
+      // }
     });
 
     if ( !user ) {
+      console.error('🚨 Usuario no encontrado:', usua_id);
       throw new RpcException({
         message: `Usuario con el id #${usua_id} no encontrado`,
         status: HttpStatus.BAD_REQUEST,
       })
     }
+    console.log('✅ Usuario encontrado:', user);
     return user;
   }
 
