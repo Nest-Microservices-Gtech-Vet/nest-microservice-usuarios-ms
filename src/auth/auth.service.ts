@@ -32,7 +32,7 @@ export class AuthService extends PrismaClient {
         return {
             userId: user.usua_id,
             role: user.usua_rol,
-            accesToken: this.jwtService.sign({ userId: user.usua_id, role: user.usua_rol },{secret: envs.secret})
+            accessToken: this.jwtService.sign({ userId: user.usua_id, role: user.usua_rol },{secret: envs.secret})
         };
     }
 

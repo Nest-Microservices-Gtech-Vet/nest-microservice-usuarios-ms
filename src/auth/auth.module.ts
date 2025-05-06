@@ -5,11 +5,15 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { EMPRESAS_SERVICE, USERS_SERVICE } from 'src/config/services';
 import { envs } from 'src/config/envs';
 import { JwtModule, JwtService } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
+  exports: [JwtService],
   controllers: [AuthController],
-  providers: [AuthService, JwtService],
+  providers: [AuthService, JwtService, JwtStrategy],
   imports: [
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: envs.secret,
       signOptions: { expiresIn: envs.jwtExpiresIn },

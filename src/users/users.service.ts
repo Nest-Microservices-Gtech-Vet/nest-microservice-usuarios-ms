@@ -2,7 +2,7 @@ import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaClient } from '@prisma/client';
-import {PaginationDto } from 'src/common';
+import { PaginationDto } from 'src/common';
 import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
@@ -12,18 +12,18 @@ export class UsersService extends PrismaClient implements OnModuleInit {
   onModuleInit() {
     this.$connect();
     this.logger.log('Database Connected');
-    }
+  }
   create(createUserDto: CreateUserDto) {
     return this.usuarios.create({
       data: createUserDto
     });
   }
 
-  async findAll( paginationDto: PaginationDto ) {
-    const { page=1, limit=2 } = paginationDto;
+  async findAll(paginationDto: PaginationDto) {
+    const { page = 1, limit = 50 } = paginationDto;
 
-    const totalPages =  await this.usuarios.count({where: {activo:true}});
-    const lastPage = Math.ceil( totalPages / limit);
+    const totalPages = await this.usuarios.count({ where: { activo: true } });
+    const lastPage = Math.ceil(totalPages / limit);
 
     return {
       data: await this.usuarios.findMany({
@@ -33,33 +33,40 @@ export class UsersService extends PrismaClient implements OnModuleInit {
       }),
       metadata: {
         total: totalPages,
-        page:page,
+        page: page,
         lastpage: lastPage
       }
     }
   }
 
   async findOne(usua_id: number) {
-    console.log(`🔍 Buscando usuario en la base de datos con ID: ${usua_id}`);
-    const user = await this.usuarios.findUnique({
-      where:{usua_id, activo: true},
-      // select: {
-      //   usua_id: true,
-      //   usua_rol: true,
-      //   activo: true,
-      // }
-    });
+    console.log(`🔍 [usuarios-ms] Iniciando búsqueda del usuario con ID: ${usua_id}`);
 
-    if ( !user ) {
-      console.error('🚨 Usuario no encontrado:', usua_id);
+    try {
+      const user = await this.usuarios.findUnique({
+        where: { usua_id, activo: true },
+      });
+
+      if (!user) {
+        console.error(`🚨 [usuarios-ms] Usuario con ID ${usua_id} no encontrado.`);
+        throw new RpcException({
+          message: `Usuario con ID ${usua_id} no encontrado.`,
+          status: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      console.log(`✅ [usuarios-ms] Usuario encontrado:`, user);
+      return user;
+
+    } catch (error) {
+      console.error(`❌ [usuarios-ms] Error al buscar usuario:`, error);
       throw new RpcException({
-        message: `Usuario con el id #${usua_id} no encontrado`,
-        status: HttpStatus.BAD_REQUEST,
-      })
+        message: `❌ Error interno en usuarios-ms (findOne)`,
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
-    console.log('✅ Usuario encontrado:', user);
-    return user;
   }
+
 
   async update(usua_id: number, updateUserDto: UpdateUserDto) {
 
@@ -68,7 +75,7 @@ export class UsersService extends PrismaClient implements OnModuleInit {
 
 
     return this.usuarios.update({
-      where: {usua_id},
+      where: { usua_id },
       data: data,
     });
   }
@@ -79,8 +86,8 @@ export class UsersService extends PrismaClient implements OnModuleInit {
     //  where: {usua_id}
     //});
     const user = await this.usuarios.update({
-      where: {usua_id},
-      data:{
+      where: { usua_id },
+      data: {
         activo: false
       }
     });

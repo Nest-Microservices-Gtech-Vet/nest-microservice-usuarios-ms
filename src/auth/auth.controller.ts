@@ -6,16 +6,6 @@ import { MessagePattern } from '@nestjs/microservices';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // @Post('login-superadmin')
-  // loginSuperAdmin(@Body() body:{email: string, password: string}) {
-  //   return this.authService.loginSuperAdmin(body.email, body.password);
-  // }
-
-  // @Post('login-admin')
-  // loginAdmin(@Body() body:{ruc: string, password: string}) {
-  //   return this.authService.loginAdmin(body.ruc, body.password);
-  // }
-
   @MessagePattern({ cmd: 'login-superadmin' })  // <--- Agregar esto
   handleLoginSuperAdmin(body: { email: string, password: string }) {
     return this.authService.loginSuperAdmin(body.email, body.password);
