@@ -28,7 +28,7 @@ export class UsersService extends PrismaClient implements OnModuleInit {
   //     data: createUserDto
   //   });
   // }
-  async create(registerUserDto: CreateUserDto, createdById?: number) {
+  async create(registerUserDto: CreateUserDto) {
     const { 
         usua_email, 
         usua_nombre, 
@@ -38,7 +38,8 @@ export class UsersService extends PrismaClient implements OnModuleInit {
         usua_contrasenia,
         usua_ruc,
         usua_rol,
-        activo
+        activo,
+        createdBy,
     } = registerUserDto;
 
     try {
@@ -71,7 +72,7 @@ export class UsersService extends PrismaClient implements OnModuleInit {
                 usua_ruc,
                 usua_rol,
                 activo,
-                createdBy: createdById ?? null,  // si lo envías desde auth, aquí se usa
+                createdBy,  // si lo envías desde auth, aquí se usa
             }
         });
 
