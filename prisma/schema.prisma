@@ -15,7 +15,7 @@ model usuarios {
   usua_email       String   @unique @db.VarChar(255)
   usua_celular     String   @db.VarChar(10)
   usua_direccion   String?
-  usua_contrasenia String   @db.VarChar(50)
+  usua_contrasenia String   @db.VarChar(255)
   activo           Boolean  @default(true)
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt

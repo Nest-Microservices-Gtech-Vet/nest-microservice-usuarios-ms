@@ -1,9 +1,12 @@
-import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { forwardRef, HttpStatus, Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaClient } from '@prisma/client';
 import { PaginationDto } from 'src/common';
 import { RpcException } from '@nestjs/microservices';
+import * as bcrypt from 'bcrypt';
+import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class UsersService extends PrismaClient implements OnModuleInit {
@@ -13,11 +16,88 @@ export class UsersService extends PrismaClient implements OnModuleInit {
     this.$connect();
     this.logger.log('Database Connected');
   }
-  create(createUserDto: CreateUserDto) {
-    return this.usuarios.create({
-      data: createUserDto
-    });
+
+  constructor(
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
+  ){
+    super();
   }
+  // async create(createUserDto: CreateUserDto) {
+  //   const createUser = await this.usuarios.create({
+  //     data: createUserDto
+  //   });
+  // }
+  async create(registerUserDto: CreateUserDto, createdById?: number) {
+    const { 
+        usua_email, 
+        usua_nombre, 
+        usua_apellido,
+        usua_celular,
+        usua_direccion,
+        usua_contrasenia,
+        usua_ruc,
+        usua_rol,
+        activo
+    } = registerUserDto;
+
+    try {
+        // Validar existencia previa de email o ruc
+        const existingUser = await this.usuarios.findFirst({
+            where: {
+                OR: [
+                    { usua_email },
+                    { usua_ruc }
+                ]
+            }
+        });
+
+        if (existingUser) {
+            throw new RpcException({
+                status: 400,
+                message: 'Ya existe un usuario con este correo o RUC.'
+            });
+        }
+
+        // Crear nuevo usuario
+        const newUser = await this.usuarios.create({
+            data: {
+                usua_email,
+                usua_nombre,
+                usua_apellido,
+                usua_celular,
+                usua_direccion,
+                usua_contrasenia: bcrypt.hashSync(usua_contrasenia, 10),
+                usua_ruc,
+                usua_rol,
+                activo,
+                createdBy: createdById ?? null,  // si lo envías desde auth, aquí se usa
+            }
+        });
+
+        const { usua_contrasenia: __, ...rest } = newUser;
+
+        // Construir el payload del token
+        const payload: JwtPayload = {
+            id: rest.usua_id,
+            email: rest.usua_email,
+            name: `${rest.usua_nombre} ${rest.usua_apellido}`,
+            rol: [rest.usua_rol]
+        };
+
+        return {
+            user: rest,
+            token: await this.authService.signJWT(payload),
+        };
+
+    } catch (error) {
+        throw new RpcException({
+            status: 400,
+            message: error.message
+        });
+    }
+}
+
 
   async findAll(paginationDto: PaginationDto) {
     const { page = 1, limit = 50 } = paginationDto;
@@ -94,5 +174,10 @@ export class UsersService extends PrismaClient implements OnModuleInit {
     return user
   }
 
+  async findByEmail(usua_email: string) {
+    return this.usuarios.findUnique({
+      where: { usua_email },
+    });
+  }
   
 }

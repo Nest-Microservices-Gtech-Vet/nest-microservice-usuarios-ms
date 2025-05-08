@@ -4,11 +4,15 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationDto } from 'src/common';
 import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
+import { AuthService } from 'src/auth/auth.service';
+import { LoginUserDto } from 'src/auth/dto/login-user.dto';
 
 
 @Controller()
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService,
+    private readonly authService: AuthService,
+  ) { }
 
   //@Post()
 
@@ -16,6 +20,11 @@ export class UsersController {
   create(@Payload() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
+
+  // @MessagePattern('auth.register.user')
+  // registerUser(@Payload() registerUserDto: CreateUserDto){
+  //   return this.usersService.create(registerUserDto);
+  // }
 
   //Get()F
 
@@ -78,4 +87,6 @@ export class UsersController {
     }
   }
   //fin check usuario ADMIN , activo
+
+ 
 }
