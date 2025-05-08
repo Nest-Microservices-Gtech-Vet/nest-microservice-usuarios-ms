@@ -43,7 +43,7 @@ export class UsersController {
   update(
     @Payload() updateUserDto: UpdateUserDto
   ) {
-   
+
 
     return this.usersService.update(updateUserDto.usua_id, updateUserDto);
   }
@@ -57,4 +57,25 @@ export class UsersController {
     return this.usersService.remove(usua_id);
 
   }
+  //inicio check usuario ADMIN , activo
+  @MessagePattern('validar_user_admin')
+  async validarUserAdmin(usua_admin_id: number) {
+    console.log(`🛠️ [usuarios-ms] Validando admin para ID: ${usua_admin_id}`);
+
+    try {
+      const user = await this.usersService.findOne(usua_admin_id);
+      const esAdmin = user.usua_rol === 'ADMIN';
+      if (!esAdmin) {
+        console.warn(`⚠️ [usuarios-ms] Usuario ${usua_admin_id} no es ADMIN`);
+        return { valid: false };
+      }
+      console.log(`✅ [usuarios-ms] Usuario ${usua_admin_id} es ADMIN y activo`);
+      return { valid: true };
+    } catch (error) {
+      console.error(`❌ [usuarios-ms] Error validando usuario admin`, error);
+      // devolvemos false si hubo error (o puedes propagar la excepción)
+      return { valid: false };
+    }
+  }
+  //fin check usuario ADMIN , activo
 }
