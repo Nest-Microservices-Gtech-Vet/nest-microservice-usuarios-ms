@@ -49,21 +49,18 @@ export class UsersController {
   //@Patch(':id')
 
   @MessagePattern({ cmd: 'update_users' })
-  update(
-    @Payload() updateUserDto: UpdateUserDto
-  ) {
-
-
-    return this.usersService.update(updateUserDto.usua_id, updateUserDto);
+  update(@Payload() payload:any) {
+    const { usua_id, updatedBy, ...updateUserDto} = payload;
+    return this.usersService.update(usua_id, updateUserDto, updatedBy);
   }
 
   //@Delete(':id')
 
   @MessagePattern({ cmd: 'delete_users' })
-  remove(@Payload('usua_id', ParseIntPipe) usua_id: number) {
-    const ue = usua_id;
-    console.log(`el usuario ${ue} a sido eliminado`)
-    return this.usersService.remove(usua_id);
+  remove(@Payload()  payload:any)  {
+    const {usua_id, updatedBy} = payload;
+    console.log(`el usuario ${usua_id} a sido eliminadopor ${updatedBy}`)
+    return this.usersService.remove(usua_id, updatedBy);
 
   }
   //inicio check usuario ADMIN , activo

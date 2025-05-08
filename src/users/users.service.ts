@@ -20,7 +20,7 @@ export class UsersService extends PrismaClient implements OnModuleInit {
   constructor(
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
-  ){
+  ) {
     super();
   }
   // async create(createUserDto: CreateUserDto) {
@@ -29,75 +29,75 @@ export class UsersService extends PrismaClient implements OnModuleInit {
   //   });
   // }
   async create(registerUserDto: CreateUserDto) {
-    const { 
-        usua_email, 
-        usua_nombre, 
-        usua_apellido,
-        usua_celular,
-        usua_direccion,
-        usua_contrasenia,
-        usua_ruc,
-        usua_rol,
-        activo,
-        createdBy,
+    const {
+      usua_email,
+      usua_nombre,
+      usua_apellido,
+      usua_celular,
+      usua_direccion,
+      usua_contrasenia,
+      usua_ruc,
+      usua_rol,
+      activo,
+      createdBy,
     } = registerUserDto;
 
     try {
-        // Validar existencia previa de email o ruc
-        const existingUser = await this.usuarios.findFirst({
-            where: {
-                OR: [
-                    { usua_email },
-                    { usua_ruc }
-                ]
-            }
-        });
-
-        if (existingUser) {
-            throw new RpcException({
-                status: 400,
-                message: 'Ya existe un usuario con este correo o RUC.'
-            });
+      // Validar existencia previa de email o ruc
+      const existingUser = await this.usuarios.findFirst({
+        where: {
+          OR: [
+            { usua_email },
+            { usua_ruc }
+          ]
         }
+      });
 
-        // Crear nuevo usuario
-        const newUser = await this.usuarios.create({
-            data: {
-                usua_email,
-                usua_nombre,
-                usua_apellido,
-                usua_celular,
-                usua_direccion,
-                usua_contrasenia: bcrypt.hashSync(usua_contrasenia, 10),
-                usua_ruc,
-                usua_rol,
-                activo,
-                createdBy,  // si lo envías desde auth, aquí se usa
-            }
+      if (existingUser) {
+        throw new RpcException({
+          status: 400,
+          message: 'Ya existe un usuario con este correo o RUC.'
         });
+      }
 
-        const { usua_contrasenia: __, ...rest } = newUser;
+      // Crear nuevo usuario
+      const newUser = await this.usuarios.create({
+        data: {
+          usua_email,
+          usua_nombre,
+          usua_apellido,
+          usua_celular,
+          usua_direccion,
+          usua_contrasenia: bcrypt.hashSync(usua_contrasenia, 10),
+          usua_ruc,
+          usua_rol,
+          activo,
+          createdBy,  // si lo envías desde auth, aquí se usa
+        }
+      });
 
-        // Construir el payload del token
-        const payload: JwtPayload = {
-            id: rest.usua_id,
-            email: rest.usua_email,
-            name: `${rest.usua_nombre} ${rest.usua_apellido}`,
-            rol: [rest.usua_rol]
-        };
+      const { usua_contrasenia: __, ...rest } = newUser;
 
-        return {
-            user: rest,
-            token: await this.authService.signJWT(payload),
-        };
+      // Construir el payload del token
+      const payload: JwtPayload = {
+        id: rest.usua_id,
+        email: rest.usua_email,
+        name: `${rest.usua_nombre} ${rest.usua_apellido}`,
+        rol: [rest.usua_rol]
+      };
+
+      return {
+        user: rest,
+        token: await this.authService.signJWT(payload),
+      };
 
     } catch (error) {
-        throw new RpcException({
-            status: 400,
-            message: error.message
-        });
+      throw new RpcException({
+        status: 400,
+        message: error.message
+      });
     }
-}
+  }
 
 
   async findAll(paginationDto: PaginationDto) {
@@ -149,19 +149,23 @@ export class UsersService extends PrismaClient implements OnModuleInit {
   }
 
 
-  async update(usua_id: number, updateUserDto: UpdateUserDto) {
+  async update(usua_id: number, updateUserDto: UpdateUserDto, updatedBy: number) {
 
     const { usua_id: __, ...data } = updateUserDto;
     await this.findOne(usua_id);
 
-
-    return this.usuarios.update({
+    const updatedUser = await this.usuarios.update({
       where: { usua_id },
-      data: data,
+      data: {
+        ...data,
+        updatedBy,
+      }
     });
+
+    return { user: updatedUser }
   }
 
-  async remove(usua_id: number) {
+  async remove(usua_id: number,updatedBy: number) {
     await this.findOne(usua_id);
     //return this.usuarios.delete({
     //  where: {usua_id}
@@ -169,7 +173,8 @@ export class UsersService extends PrismaClient implements OnModuleInit {
     const user = await this.usuarios.update({
       where: { usua_id },
       data: {
-        activo: false
+        activo: false,
+        updatedBy,
       }
     });
     return user
@@ -180,5 +185,5 @@ export class UsersService extends PrismaClient implements OnModuleInit {
       where: { usua_email },
     });
   }
-  
+
 }
