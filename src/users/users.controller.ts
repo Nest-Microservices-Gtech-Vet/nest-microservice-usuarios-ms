@@ -33,12 +33,13 @@ export class UsersController {
     return this.usersService.findAll(paginationDto);
   }
 
-  //@Get(':id')
+
 
   @MessagePattern({ cmd: 'findOne_users' })
-  async findOne(@Payload('id', ParseIntPipe) usua_id: number) {
-    return this.usersService.findOne(usua_id)
-
+  findOne(@Payload() payload: any) {
+    console.log('📥 Received payload en usuarios-ms:', payload);
+    const { usua_id } = payload;
+    return this.usersService.findOne(usua_id);
   }
 
 
@@ -49,16 +50,16 @@ export class UsersController {
   //@Patch(':id')
 
   @MessagePattern({ cmd: 'update_users' })
-  update(@Payload() payload:any) {
-    const { usua_id, updatedBy, ...updateUserDto} = payload;
+  update(@Payload() payload: any) {
+    const { usua_id, updatedBy, ...updateUserDto } = payload;
     return this.usersService.update(usua_id, updateUserDto, updatedBy);
   }
 
   //@Delete(':id')
 
   @MessagePattern({ cmd: 'delete_users' })
-  remove(@Payload()  payload:any)  {
-    const {usua_id, updatedBy} = payload;
+  remove(@Payload() payload: any) {
+    const { usua_id, updatedBy } = payload;
     console.log(`el usuario ${usua_id} a sido eliminadopor ${updatedBy}`)
     return this.usersService.remove(usua_id, updatedBy);
 
@@ -85,5 +86,5 @@ export class UsersController {
   }
   //fin check usuario ADMIN , activo
 
- 
+
 }

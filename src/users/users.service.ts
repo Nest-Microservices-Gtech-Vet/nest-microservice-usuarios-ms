@@ -165,7 +165,7 @@ export class UsersService extends PrismaClient implements OnModuleInit {
     return { user: updatedUser }
   }
 
-  async remove(usua_id: number,updatedBy: number) {
+  async remove(usua_id: number, updatedBy: number) {
     await this.findOne(usua_id);
     //return this.usuarios.delete({
     //  where: {usua_id}
