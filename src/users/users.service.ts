@@ -120,12 +120,38 @@ export class UsersService extends PrismaClient implements OnModuleInit {
     }
   }
 
+  async findAllInactive(paginationDto: PaginationDto) {
+    const { page = 1, limit = 50 } = paginationDto;
+
+    const totalPages = await this.usuarios.count({ where: { activo: false } });
+    const lastPage = Math.ceil(totalPages / limit);
+
+    return {
+      data: await this.usuarios.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        where: { activo: false }
+      }),
+      metadata: {
+        total: totalPages,
+        page: page,
+        lastpage: lastPage
+      }
+    }
+  }
+
+
+
+
   async findOne(usua_id: number) {
-    console.log(`🔍 [usuarios-ms] Iniciando búsqueda del usuario con ID: ${usua_id}`);
+    //console.log(`🔍 [usuarios-ms] Iniciando búsqueda del usuario con ID: ${usua_id}`);
 
     try {
       const user = await this.usuarios.findUnique({
-        where: { usua_id, activo: true },
+        where: { 
+          usua_id, 
+          //activo: true 
+        },
       });
 
       if (!user) {
@@ -136,7 +162,7 @@ export class UsersService extends PrismaClient implements OnModuleInit {
         });
       }
 
-      console.log(`✅ [usuarios-ms] Usuario encontrado:`, user);
+      //console.log(`✅ [usuarios-ms] Usuario encontrado:`, user);
       return user;
 
     } catch (error) {

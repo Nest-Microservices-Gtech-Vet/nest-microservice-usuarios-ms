@@ -33,12 +33,17 @@ export class UsersController {
     return this.usersService.findAll(paginationDto);
   }
 
+  @MessagePattern({ cmd: 'findAll_users.inactive' })
+  findAllInactive(@Payload() paginationDto: PaginationDto) {
+    return this.usersService.findAllInactive(paginationDto);
+  }
+
 
 
   @MessagePattern({ cmd: 'findOne_users' })
-  findOne(@Payload() payload: any) {
-    console.log('📥 Received payload en usuarios-ms:', payload);
-    const usua_id = payload.id;
+  findOne(@Payload('id', ParseIntPipe) usua_id: number) {
+    console.log('📥 Received payload en usuarios-ms:', usua_id);
+    
     return this.usersService.findOne(usua_id);
   }
 
