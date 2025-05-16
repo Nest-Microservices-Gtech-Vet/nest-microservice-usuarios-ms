@@ -25,6 +25,7 @@ export class AuthController {
 
   @MessagePattern('auth.verify.user')
   verifyToken( @Payload() token:string){
+    console.log('🔑 Token recibido en usuarios-ms (controller):', token); // Nuevo log
     return this.authService.verifyToken(token);
   }
 

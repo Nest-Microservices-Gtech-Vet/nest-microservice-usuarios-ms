@@ -21,7 +21,7 @@ export class AuthService extends PrismaClient implements OnModuleInit {
         private readonly jwtservice: JwtService,
         @Inject(forwardRef(() => UsersService))
         private readonly usersService: UsersService,
-        
+
     ) {
         super();
     }
@@ -35,9 +35,15 @@ export class AuthService extends PrismaClient implements OnModuleInit {
             const { sub, iat, exp, ...user } = this.jwtservice.verify(token, {
                 secret: envs.jwtSecret,
             });
+
+            const userWithRoleArray = {
+                ...user,
+                rol: Array.isArray(user.rol) ? user.rol : [user.usua_rol],
+            };
+
             return {
-                user: user,
-                token: await this.signJWT(user),
+                user: userWithRoleArray,
+                token: await this.signJWT(userWithRoleArray),
             }
         } catch (error) {
             console.log(error)

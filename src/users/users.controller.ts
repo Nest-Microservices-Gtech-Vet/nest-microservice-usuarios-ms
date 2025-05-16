@@ -38,7 +38,7 @@ export class UsersController {
   @MessagePattern({ cmd: 'findOne_users' })
   findOne(@Payload() payload: any) {
     console.log('📥 Received payload en usuarios-ms:', payload);
-    const { usua_id } = payload;
+    const usua_id = payload.id;
     return this.usersService.findOne(usua_id);
   }
 
