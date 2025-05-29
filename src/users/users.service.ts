@@ -1,12 +1,14 @@
 import { forwardRef, HttpStatus, Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Rol } from '@prisma/client';
 import { PaginationDto } from 'src/common';
 import { RpcException } from '@nestjs/microservices';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { AuthService } from 'src/auth/auth.service';
+import { RolEnum } from './enums/rol.enum';
+
 
 @Injectable()
 export class UsersService extends PrismaClient implements OnModuleInit {
@@ -148,8 +150,8 @@ export class UsersService extends PrismaClient implements OnModuleInit {
 
     try {
       const user = await this.usuarios.findUnique({
-        where: { 
-          usua_id, 
+        where: {
+          usua_id,
           //activo: true 
         },
       });
@@ -211,5 +213,46 @@ export class UsersService extends PrismaClient implements OnModuleInit {
       where: { usua_email },
     });
   }
+
+  //***************************************************************************** */
+  async findByRole(usua_rol: RolEnum) {
+    return this.usuarios.findMany({
+      where: {
+        usua_rol: usua_rol,
+      },
+      select: {
+        usua_id: true,
+        usua_nombre: true,
+        usua_apellido: true,
+        usua_email: true,
+        usua_rol: true,
+
+      },
+    });
+  }
+
+
+  async findByIds(ids: number[]) {
+  return this.usuarios.findMany({
+    where: {
+      usua_id: {in: ids},
+    },
+  });
+}
+
+
+
+  //***************************************************************************** */
+
+  async listarUsuarios(filtros: { usua_email?: string; }) {
+    return this.usuarios.findMany({
+      where: {
+        ...(filtros.usua_email ? { usua_email: filtros.usua_email } : {}),
+
+      },
+    });
+  }
+
+
 
 }

@@ -1,17 +1,24 @@
-import { Controller, Body, ParseIntPipe, UseGuards, HttpStatus } from '@nestjs/common';
+import { BadRequestException, Controller, Logger, ParseIntPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationDto } from 'src/common';
-import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
+import { MessagePattern, Payload, } from '@nestjs/microservices';
 import { AuthService } from 'src/auth/auth.service';
-import { LoginUserDto } from 'src/auth/dto/login-user.dto';
+import { Rol } from '@prisma/client';
+import { FiltroUsuariosDto } from './dto/filtrar-usuario.dto';
+import { GetUsuariosPorRolDto } from './dto/get-usuarios-por-rol.dto';
+
+
 
 
 @Controller()
 export class UsersController {
+
+  private readonly logger = new Logger(UsersController.name);
+
   constructor(private readonly usersService: UsersService,
     private readonly authService: AuthService,
+
   ) { }
 
   //@Post()
@@ -43,7 +50,7 @@ export class UsersController {
   @MessagePattern({ cmd: 'findOne_users' })
   findOne(@Payload('id', ParseIntPipe) usua_id: number) {
     console.log('📥 Received payload en usuarios-ms:', usua_id);
-    
+
     return this.usersService.findOne(usua_id);
   }
 
@@ -91,5 +98,33 @@ export class UsersController {
   }
   //fin check usuario ADMIN , activo
 
+
+  //*************************************************************************************** */
+  @MessagePattern({ cmd: 'findAll_users.byRole' })
+  async findAllUsersByRole(@Payload() dto: GetUsuariosPorRolDto) {
+    this.logger.log('📥 [usuarios-ms] Buscar usuarios por rol:', dto.usua_rol);
+    return this.usersService.findByRole(dto.usua_rol);
+  }
+
+
+
+  @MessagePattern('usuarios.getByIds')
+  async getByIds(@Payload() data: { ids: number[] }) {
+    const usuarios = await this.usersService.findByIds(data.ids);
+    return usuarios.map(u => ({
+      usua_id: u.usua_id,
+      usua_nombre: u.usua_nombre,
+      usua_apellido: u.usua_apellido,
+      usua_email: u.usua_email,
+    }));
+  }
+
+  //*************************************************************************************** */
+
+  @MessagePattern({ cmd: 'ping_test' })
+  handlePingTest(@Payload() data: any) {
+    console.log('📥 [usuarios-ms] Recibido ping_test con payload:', data);
+    return { message: 'pong desde usuarios-ms' };
+  }
 
 }
