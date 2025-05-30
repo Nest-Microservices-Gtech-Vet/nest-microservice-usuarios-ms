@@ -3,11 +3,12 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaClient } from '@prisma/client';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { RpcException } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import * as bcrypt from 'bcrypt'
-import { envs } from 'src/config';
+import { envs, NATS_SERVICE } from 'src/config';
 import { UsersService } from 'src/users/users.service';
 import { LoginUserDto } from './dto/login-user.dto';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class AuthService extends PrismaClient implements OnModuleInit {
@@ -18,6 +19,7 @@ export class AuthService extends PrismaClient implements OnModuleInit {
     }
 
     constructor(
+        @Inject(NATS_SERVICE) private readonly client: ClientProxy,
         private readonly jwtservice: JwtService,
         @Inject(forwardRef(() => UsersService))
         private readonly usersService: UsersService,
@@ -84,6 +86,10 @@ export class AuthService extends PrismaClient implements OnModuleInit {
                 rol: [user.usua_rol],
             };
 
+            const empresas = await firstValueFrom(
+                this.client.send('empresas.obtenerPorUsuario', user.usua_id)
+            );
+
             return {
                 user: {
                     usua_id: user.usua_id,
@@ -91,6 +97,7 @@ export class AuthService extends PrismaClient implements OnModuleInit {
                     usua_nombre: user.usua_nombre,
                     usua_apellido: user.usua_apellido,
                     usua_rol: user.usua_rol,
+                    empresas: empresas || []
                 },
                 token: await this.signJWT(payload),
             };

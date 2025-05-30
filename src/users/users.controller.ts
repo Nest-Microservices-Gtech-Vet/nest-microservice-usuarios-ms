@@ -1,12 +1,13 @@
-import { BadRequestException, Controller, Logger, ParseIntPipe } from '@nestjs/common';
+import { BadRequestException, Controller, Inject, Logger, ParseIntPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PaginationDto } from 'src/common';
-import { MessagePattern, Payload, } from '@nestjs/microservices';
+import { ClientProxy, MessagePattern, Payload, } from '@nestjs/microservices';
 import { AuthService } from 'src/auth/auth.service';
 import { Rol } from '@prisma/client';
 import { FiltroUsuariosDto } from './dto/filtrar-usuario.dto';
 import { GetUsuariosPorRolDto } from './dto/get-usuarios-por-rol.dto';
+import { NATS_SERVICE } from 'src/config';
 
 
 
@@ -16,7 +17,9 @@ export class UsersController {
 
   private readonly logger = new Logger(UsersController.name);
 
-  constructor(private readonly usersService: UsersService,
+  constructor(
+    @Inject(NATS_SERVICE) private readonly client: ClientProxy,
+    private readonly usersService: UsersService,
     private readonly authService: AuthService,
 
   ) { }
@@ -101,9 +104,9 @@ export class UsersController {
 
   //*************************************************************************************** */
   @MessagePattern({ cmd: 'findAll_users.byRole' })
-  async findAllUsersByRole(@Payload() dto: GetUsuariosPorRolDto) {
-    this.logger.log('📥 [usuarios-ms] Buscar usuarios por rol:', dto.usua_rol);
-    return this.usersService.findByRole(dto.usua_rol);
+  async findAllUsersByRole(@Payload() data: { usua_rol: Rol[] }) {
+    this.logger.log('📥 [usuarios-ms] Buscar usuarios por rol:', data.usua_rol);
+    return this.usersService.findByRole(data.usua_rol);
   }
 
 
@@ -116,6 +119,7 @@ export class UsersController {
       usua_nombre: u.usua_nombre,
       usua_apellido: u.usua_apellido,
       usua_email: u.usua_email,
+      usua_rol: u.usua_rol,
     }));
   }
 

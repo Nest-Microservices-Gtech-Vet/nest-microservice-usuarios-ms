@@ -215,10 +215,12 @@ export class UsersService extends PrismaClient implements OnModuleInit {
   }
 
   //***************************************************************************** */
-  async findByRole(usua_rol: RolEnum) {
+  async findByRole(roles: Rol[]) {
     return this.usuarios.findMany({
       where: {
-        usua_rol: usua_rol,
+        usua_rol: { 
+          in: roles,}
+          ,
       },
       select: {
         usua_id: true,
