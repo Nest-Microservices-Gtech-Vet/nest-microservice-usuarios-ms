@@ -103,24 +103,47 @@ export class UsersService extends PrismaClient implements OnModuleInit {
 
 
   async findAll(paginationDto: PaginationDto) {
-    const { page = 1, limit = 50 } = paginationDto;
+    const { page = 1, limit = 50, search = '' } = paginationDto;
 
-    const totalPages = await this.usuarios.count({ where: { activo: true } });
-    const lastPage = Math.ceil(totalPages / limit);
+    const where: any = {
+      activo: true,
+    };
 
-    return {
-      data: await this.usuarios.findMany({
+    if (search) {
+      where.OR = [
+        { usua_nombre: { contains: search, mode: 'insensitive' } },
+        { usua_apellido: { contains: search, mode: 'insensitive' } },
+        { usua_ruc: { contains: search, mode: 'insensitive' } },
+        { usua_email: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [total, data] = await Promise.all([
+      this.usuarios.count({ where }),
+      this.usuarios.findMany({
         skip: (page - 1) * limit,
         take: limit,
-        where: { activo: true }
+        where,
+        orderBy: {
+          usua_nombre: 'asc',
+        },
       }),
+    ]);
+
+    const lastPage = Math.ceil(total / limit);
+
+    return {
+      data,
       metadata: {
-        total: totalPages,
-        page: page,
-        lastpage: lastPage
-      }
-    }
+        total,
+        page,
+        lastPage,
+      },
+    };
   }
+
+
+
 
   async findAllInactive(paginationDto: PaginationDto) {
     const { page = 1, limit = 50 } = paginationDto;
@@ -218,9 +241,10 @@ export class UsersService extends PrismaClient implements OnModuleInit {
   async findByRole(roles: Rol[]) {
     return this.usuarios.findMany({
       where: {
-        usua_rol: { 
-          in: roles,}
-          ,
+        usua_rol: {
+          in: roles,
+        }
+        ,
       },
       select: {
         usua_id: true,
@@ -235,12 +259,12 @@ export class UsersService extends PrismaClient implements OnModuleInit {
 
 
   async findByIds(ids: number[]) {
-  return this.usuarios.findMany({
-    where: {
-      usua_id: {in: ids},
-    },
-  });
-}
+    return this.usuarios.findMany({
+      where: {
+        usua_id: { in: ids },
+      },
+    });
+  }
 
 
 

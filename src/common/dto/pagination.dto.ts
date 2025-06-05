@@ -1,15 +1,19 @@
 import { Type } from "class-transformer";
-import { IsOptional, IsPositive } from "class-validator";
+import { IsOptional, IsPositive, IsString } from "class-validator";
 
-export class PaginationDto{
+export class PaginationDto {
 
     @IsPositive()
     @IsOptional()
-    @Type(()=>Number)
+    @Type(() => Number)
     page?: number = 1;
 
     @IsPositive()
     @IsOptional()
-    @Type(()=>Number)
-    limit? : number=50;
+    @Type(() => Number)
+    limit?: number = 50;
+
+    @IsOptional()
+    @IsString()
+    search?: string;
 }

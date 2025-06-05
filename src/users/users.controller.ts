@@ -31,16 +31,11 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  // @MessagePattern('auth.register.user')
-  // registerUser(@Payload() registerUserDto: CreateUserDto){
-  //   return this.usersService.create(registerUserDto);
-  // }
-
-  //Get()F
 
   @MessagePattern({ cmd: 'findAll_users' })
-  findAll(@Payload() paginationDto: PaginationDto) {
-    return this.usersService.findAll(paginationDto);
+  findAll(@Payload() payload:{paginationDto: PaginationDto; }) {
+
+    return this.usersService.findAll(payload.paginationDto);
   }
 
   @MessagePattern({ cmd: 'findAll_users.inactive' })
