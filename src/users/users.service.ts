@@ -146,23 +146,43 @@ export class UsersService extends PrismaClient implements OnModuleInit {
 
 
   async findAllInactive(paginationDto: PaginationDto) {
-    const { page = 1, limit = 50 } = paginationDto;
+    const { page = 1, limit = 50, search = '' } = paginationDto;
 
-    const totalPages = await this.usuarios.count({ where: { activo: false } });
-    const lastPage = Math.ceil(totalPages / limit);
+    const where: any = {
+      activo: false,
+    };
 
-    return {
-      data: await this.usuarios.findMany({
+    if (search) {
+      where.OR = [
+        { usua_nombre: { contains: search, mode: 'insensitive' } },
+        { usua_apellido: { contains: search, mode: 'insensitive' } },
+        { usua_ruc: { contains: search, mode: 'insensitive' } },
+        { usua_email: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [total, data] = await Promise.all([
+      this.usuarios.count({ where }),
+      this.usuarios.findMany({
         skip: (page - 1) * limit,
         take: limit,
-        where: { activo: false }
+        where,
+        orderBy: {
+          usua_nombre: 'asc',
+        },
       }),
+    ]);
+
+    const lastPage = Math.ceil(total / limit);
+
+    return {
+      data,
       metadata: {
-        total: totalPages,
-        page: page,
-        lastpage: lastPage
-      }
-    }
+        total,
+        page,
+        lastPage,
+      },
+    };
   }
 
 

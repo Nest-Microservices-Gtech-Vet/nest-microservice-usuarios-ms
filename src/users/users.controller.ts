@@ -39,8 +39,8 @@ export class UsersController {
   }
 
   @MessagePattern({ cmd: 'findAll_users.inactive' })
-  findAllInactive(@Payload() paginationDto: PaginationDto) {
-    return this.usersService.findAllInactive(paginationDto);
+  findAllInactive(@Payload() payload:{paginationDto: PaginationDto; }) {
+    return this.usersService.findAllInactive(payload.paginationDto);
   }
 
 
