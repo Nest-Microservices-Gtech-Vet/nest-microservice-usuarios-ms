@@ -65,7 +65,7 @@ export class UsersController {
     return this.usersService.update(usua_id, updateUserDto, updatedBy);
   }
 
-  //@Delete(':id')
+  //@Delete(':id') borrrar por ususario
 
   @MessagePattern({ cmd: 'delete_users' })
   remove(@Payload() payload: any) {
